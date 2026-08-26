@@ -1,3 +1,4 @@
+from app.models.registration import PendingRegistration
 from app.models.project import ResearchProject
 from app.models.research import Citation, Dataset, ExperimentPlan, LiteraturePaper, ResearchGap, RoadmapEntry, SupervisorReview, ToolRecommendation
 from app.models.user import User

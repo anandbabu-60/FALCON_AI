@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 14
     allowed_origins: list[str] = ["http://localhost:3000"]
     redis_url: str | None = None
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_from_email: str | None = None
+    smtp_from_name: str = "ResearchMind AI"
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, extra="ignore")
 
 

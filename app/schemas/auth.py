@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 from app.schemas.common import ORMModel
 
@@ -10,7 +10,14 @@ class UserRegister(BaseModel):
     email: EmailStr
     full_name: str = Field(min_length=2, max_length=150)
     password: str = Field(min_length=8, max_length=128)
+    confirm_password: str = Field(min_length=8, max_length=128)
     institution: str | None = Field(default=None, max_length=255)
+
+    @model_validator(mode="after")
+    def passwords_match(self):
+        if self.password != self.confirm_password:
+            raise ValueError("Passwords do not match.")
+        return self
 
 
 class UserLogin(BaseModel):
@@ -41,3 +48,18 @@ class TokenPair(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+
+class VerifyEmailRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class ResendVerificationOTPRequest(BaseModel):
+    email: EmailStr
+
+
+class RegistrationMessage(BaseModel):
+    message: str
+
+
