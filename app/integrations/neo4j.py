@@ -1,29 +1,21 @@
-import os
 from typing import Any
 
-from dotenv import load_dotenv
 from neo4j import GraphDatabase
 from neo4j.exceptions import Neo4jError, ServiceUnavailable
 
-
-load_dotenv()
-
-
-NEO4J_URI = os.getenv("NEO4J_URI")
-NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
-NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "neo4j")
+from app.core.config import get_settings
 
 
 _driver = None
 
 
 def is_configured() -> bool:
+    settings = get_settings()
     return all(
         [
-            NEO4J_URI,
-            NEO4J_USERNAME,
-            NEO4J_PASSWORD,
+            settings.neo4j_uri,
+            settings.neo4j_username,
+            settings.neo4j_password,
         ]
     )
 
@@ -38,12 +30,13 @@ def get_driver():
             "NEO4J_PASSWORD in the environment."
         )
 
+    settings = get_settings()
     if _driver is None:
         _driver = GraphDatabase.driver(
-            NEO4J_URI,
+            settings.neo4j_uri,
             auth=(
-                NEO4J_USERNAME,
-                NEO4J_PASSWORD,
+                settings.neo4j_username,
+                settings.neo4j_password,
             ),
             # Neo4j is optional; an unavailable graph service must not block
             # project creation or the relational research workflow.
@@ -63,13 +56,13 @@ def verify_connection() -> dict[str, Any]:
 
         return {
             "connected": True,
-            "database": NEO4J_DATABASE,
+            "database": get_settings().neo4j_database,
         }
 
     except ServiceUnavailable as exc:
         return {
             "connected": False,
-            "database": NEO4J_DATABASE,
+            "database": get_settings().neo4j_database,
             "error": str(exc),
         }
 
@@ -116,12 +109,12 @@ def initialize_schema():
     for query in queries:
         driver.execute_query(
             query,
-            database_=NEO4J_DATABASE,
+            database_=get_settings().neo4j_database,
         )
 
     return {
         "initialized": True,
-        "database": NEO4J_DATABASE,
+        "database": get_settings().neo4j_database,
     }
 
 
@@ -147,7 +140,7 @@ def upsert_project(
         project_id=project_id,
         title=title,
         description=description,
-        database_=NEO4J_DATABASE,
+        database_=get_settings().neo4j_database,
     )
 
     return records[0].data()
@@ -198,7 +191,7 @@ def upsert_paper(
         title=title,
         abstract=abstract,
         authors=author_list,
-        database_=NEO4J_DATABASE,
+        database_=get_settings().neo4j_database,
     )
 
     return {
@@ -230,7 +223,7 @@ def add_theme(
         """,
         paper_id=paper_id,
         theme=theme,
-        database_=NEO4J_DATABASE,
+        database_=get_settings().neo4j_database,
     )
 
     return records[0].data() if records else None
@@ -256,7 +249,7 @@ def add_research_gap(
         """,
         project_id=project_id,
         gap_title=gap_title,
-        database_=NEO4J_DATABASE,
+        database_=get_settings().neo4j_database,
     )
 
     return records[0].data() if records else None
@@ -282,7 +275,7 @@ def get_project_graph(project_id: str):
             collect(DISTINCT gap) AS gaps
         """,
         project_id=project_id,
-        database_=NEO4J_DATABASE,
+        database_=get_settings().neo4j_database,
     )
 
     if not records:

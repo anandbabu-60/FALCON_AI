@@ -8,14 +8,18 @@ from app.database.base import Base
 import app.models  # noqa: F401 - registers all metadata
 
 config = context.config
-config.set_main_option("sqlalchemy.url", get_settings().database_url)
+database_url = get_settings().database_url
+# ConfigParser treats `%` as interpolation syntax. Render passwords may
+# contain percent-encoded characters, so escape them for Alembic's config
+# object; engine_from_config receives the decoded value after interpolation.
+config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 if config.config_file_name:
     fileConfig(config.config_file_name)
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    context.configure(url=get_settings().database_url, target_metadata=target_metadata, literal_binds=True, dialect_opts={"paramstyle": "named"})
+    context.configure(url=database_url, target_metadata=target_metadata, literal_binds=True, dialect_opts={"paramstyle": "named"})
     with context.begin_transaction(): context.run_migrations()
 
 

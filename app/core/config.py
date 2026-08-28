@@ -36,6 +36,25 @@ class Settings(BaseSettings):
     max_upload_size_mb: int = 25
     enable_document_indexing: bool = True
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, value):
+        """Force PostgreSQL URLs onto SQLAlchemy's Psycopg 3 dialect.
+
+        Render commonly supplies `postgresql://` (and older services may use
+        `postgres://`). SQLAlchemy's generic PostgreSQL URL defaults to the
+        psycopg2 dialect, while this project intentionally installs Psycopg 3.
+        """
+        if not isinstance(value, str):
+            return value
+        value = value.strip()
+        for prefix in ("postgres://", "postgresql://"):
+            if value.lower().startswith(prefix):
+                return "postgresql+psycopg://" + value[len(prefix):]
+        if value.lower().startswith("postgresql+psycopg2://"):
+            return "postgresql+psycopg://" + value[len("postgresql+psycopg2://"):]
+        return value
+
     @field_validator("debug", mode="before")
     @classmethod
     def parse_debug(cls, value):
