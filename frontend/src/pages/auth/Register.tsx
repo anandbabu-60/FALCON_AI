@@ -83,7 +83,6 @@ export default function Register() {
           "Account creation failed. Check your details and try again.",
       );
     } finally { setSaving(false); }
-    }
   };
   const verify = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -100,7 +99,6 @@ export default function Register() {
           "OTP verification failed. Please enter the correct OTP.",
       );
     } finally { setSaving(false); }
-    }
   };
   const resend = async () => {
     if (resendSeconds > 0) {
