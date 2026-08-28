@@ -1,6 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,6 +22,26 @@ class Settings(BaseSettings):
     smtp_password: str | None = None
     smtp_from_email: str | None = None
     smtp_from_name: str = "ResearchMind AI"
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-3.6-flash"
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    google_redirect_uri: str = "http://localhost:8000/api/v1/auth/google/callback"
+    frontend_url: str = "http://localhost:5173"
+    neo4j_uri: str | None = None
+    neo4j_username: str | None = None
+    neo4j_password: str | None = None
+    neo4j_database: str = "neo4j"
+    storage_dir: str = "storage"
+    max_upload_size_mb: int = 25
+    enable_document_indexing: bool = True
+
+    @field_validator("debug", mode="before")
+    @classmethod
+    def parse_debug(cls, value):
+        if isinstance(value, str):
+            return value.strip().lower() in {"1", "true", "yes", "on", "debug"}
+        return value
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, extra="ignore")
 
 

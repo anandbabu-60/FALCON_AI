@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict
 
@@ -14,8 +15,11 @@ class TimestampedResponse(ORMModel):
     updated_at: datetime
 
 
-class Page(ORMModel):
-    items: list
+ResponseT = TypeVar("ResponseT")
+
+
+class Page(ORMModel, Generic[ResponseT]):
+    items: list[ResponseT]
     total: int
     page: int
     size: int

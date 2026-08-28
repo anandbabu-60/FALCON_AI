@@ -1,9 +1,39 @@
+# Environment files
 .env
+.env.*
+!.env.example
+
+# Python virtual environments
 .venv/
+venv/
+
+# Python cache
 __pycache__/
 *.py[cod]
+
+# Test / lint cache
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Local databases
 *.db
 *.sqlite3
+
+# Generated / local storage
+storage/
+chroma_db/
+
+# Node / frontend dependencies and builds
+node_modules/
+dist/
+build/
+
+# Private keys and certificates
+*.pem
+*.key
+*.crt
+
+# Credential files
+credentials*.json
+service-account*.json

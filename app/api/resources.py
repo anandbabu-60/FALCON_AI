@@ -20,7 +20,7 @@ def resource_router(prefix: str, tag: str, model: type, create_schema: type[Base
     def create(project_id: uuid.UUID, payload: create_schema, current_user: CurrentUser, db: DBSession):
         return create_resource(db, model, project_id, current_user.id, payload.model_dump())
 
-    @router.get("", response_model=Page)
+    @router.get("", response_model=Page[response_schema])
     def list_all(project_id: uuid.UUID, current_user: CurrentUser, db: DBSession, page: int = Query(1, ge=1), size: int = Query(20, ge=1, le=100), search: str | None = None):
         items, total = list_resources(db, model, project_id, current_user.id, page, size, search, search_field)
         return {"items": items, "total": total, "page": page, "size": size}

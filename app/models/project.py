@@ -9,6 +9,8 @@ from app.database.base import Base
 from app.models.base import UUIDTimestampMixin
 
 if TYPE_CHECKING:
+    from app.models.ai import AIArtifact
+    from app.models.document import ResearchDocument
     from app.models.research import Citation, Dataset, ExperimentPlan, LiteraturePaper, ResearchGap, RoadmapEntry, SupervisorReview, ToolRecommendation
     from app.models.user import User
 
@@ -38,3 +40,5 @@ class ResearchProject(UUIDTimestampMixin, Base):
     citations: Mapped[list["Citation"]] = relationship(back_populates="project", cascade="all, delete-orphan")
     roadmap_entries: Mapped[list["RoadmapEntry"]] = relationship(back_populates="project", cascade="all, delete-orphan")
     reviews: Mapped[list["SupervisorReview"]] = relationship(back_populates="project", cascade="all, delete-orphan")
+    documents: Mapped[list["ResearchDocument"]] = relationship(back_populates="project", cascade="all, delete-orphan")
+    ai_artifacts: Mapped[list["AIArtifact"]] = relationship(back_populates="project", cascade="all, delete-orphan")
