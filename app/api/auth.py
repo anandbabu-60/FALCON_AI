@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 from urllib.parse import urlencode
 
 import httpx
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy import func, select
 
@@ -48,7 +48,7 @@ def google_login() -> RedirectResponse:
         "state": state,
     })
     response = RedirectResponse(f"https://accounts.google.com/o/oauth2/v2/auth?{query}", status_code=status.HTTP_302_FOUND)
-    response.set_cookie("google_oauth_state", state, max_age=600, httponly=True, samesite="lax", secure=False)
+    response.set_cookie("google_oauth_state", state, max_age=600, httponly=True, samesite="lax", secure=settings.environment == "production")
     return response
 
 
@@ -97,7 +97,10 @@ def google_callback(request: Request, db: DBSession, code: str | None = None, st
         return _oauth_error_redirect("This account is disabled. Contact the administrator.")
 
     pair = tokens_for(user)
-    target = f"{settings.frontend_url.rstrip('/')}/oauth/callback?{urlencode({'access_token': pair.access_token, 'refresh_token': pair.refresh_token})}"
+    # Keep bearer tokens out of the callback URL query string (and therefore
+    # out of common server/proxy query logs and Referer headers). The frontend
+    # consumes the fragment and immediately stores the pair locally.
+    target = f"{settings.frontend_url.rstrip('/')}/oauth/callback#{urlencode({'access_token': pair.access_token, 'refresh_token': pair.refresh_token})}"
     response = RedirectResponse(target, status_code=status.HTTP_302_FOUND)
     response.delete_cookie("google_oauth_state")
     return response
@@ -232,3 +235,14 @@ def refresh(payload: RefreshTokenRequest, db: DBSession):
     user = db.get(User, user_id)
     if not user or not user.is_active: raise HTTPException(status_code=401, detail="Account is unavailable")
     return tokens_for(user)
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout() -> Response:
+    """End the client session.
+
+    JWTs are stateless in this deployment, so the browser must discard both
+    tokens. Immediate server-side revocation can be added later with Redis;
+    this endpoint keeps logout consistent across clients today.
+    """
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

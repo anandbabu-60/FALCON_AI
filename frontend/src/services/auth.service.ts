@@ -1,4 +1,4 @@
-import { login, register, resendVerificationOtp, verifyEmail, type LoginPayload, type RegisterPayload, type TokenPair } from '../api/auth.api';
+import { login, logout, register, resendVerificationOtp, verifyEmail, type LoginPayload, type RegisterPayload, type TokenPair } from '../api/auth.api';
 import { deleteCurrentUser, getCurrentUser, updateCurrentUser, type User } from '../api/users.api';
 
 export const ACCESS_TOKEN_KEY = 'research_access_token';
@@ -29,3 +29,6 @@ export const resendCode = (email: string) => resendVerificationOtp(email);
 export const profile = () => getCurrentUser().then((response) => response.data);
 export const updateProfile = (payload: Partial<Pick<User, 'full_name' | 'institution'>>) => updateCurrentUser(payload).then((response) => response.data);
 export const deleteAccount = () => deleteCurrentUser();
+export async function signOut() {
+  try { await logout(); } finally { clearTokens(); }
+}

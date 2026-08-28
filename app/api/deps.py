@@ -9,13 +9,19 @@ from app.core.security import decode_token
 from app.database.session import get_db
 from app.models.user import User
 
-bearer_scheme = HTTPBearer(auto_error=True)
+bearer_scheme = HTTPBearer(auto_error=False)
 DBSession = Annotated[Session, Depends(get_db)]
 
 
 def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(bearer_scheme)], db: DBSession,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)], db: DBSession,
 ) -> User:
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     try:
         user_id = uuid.UUID(decode_token(credentials.credentials, "access"))
     except ValueError as exc:

@@ -3,6 +3,7 @@ import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 import { useEffect, useState } from 'react';
+import ProtectedRoute from './ProtectedRoute';
 
 const screens: Record<string, ResearchScreen> = {
   '/dashboard': 'overview', '/projects': 'projects', '/literature': 'literature',
@@ -16,11 +17,13 @@ function OAuthCallback() {
   const [newName, setNewName] = useState('');
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const accessToken = params.get('access_token');
-    const refreshToken = params.get('refresh_token');
+    const fragment = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const accessToken = fragment.get('access_token') || params.get('access_token');
+    const refreshToken = fragment.get('refresh_token') || params.get('refresh_token');
     if (accessToken && refreshToken) {
       localStorage.setItem('research_access_token', accessToken);
       localStorage.setItem('research_refresh_token', refreshToken);
+      window.history.replaceState({}, document.title, '/oauth/callback');
       window.location.replace('/dashboard');
       return;
     }
@@ -41,5 +44,5 @@ export default function AppRoutes() {
   if (path === '/register') return <Register />;
   if (path === '/forgot-password') return <ForgotPassword />;
   if (path === '/oauth/callback') return <OAuthCallback />;
-  return <ResearchApp initialScreen={screens[path] ?? 'overview'} />;
+  return <ProtectedRoute><ResearchApp initialScreen={screens[path] ?? 'overview'} /></ProtectedRoute>;
 }

@@ -51,6 +51,7 @@ import { supervisorApi } from "../api/supervisor.api";
 import { citationsApi } from "../api/citations.api";
 import { listDocuments, uploadDocument, type ResearchDocument } from "../api/documents.api";
 import { getCurrentUser, type User } from "../api/users.api";
+import { signOut } from "../services/auth.service";
 import "./copilot.css";
 
 const nav = [
@@ -1487,10 +1488,10 @@ export default function ResearchApp({ initialScreen = "overview" }: { initialScr
     setHistoryQuery("");
   };
   const logout = () => {
-    localStorage.removeItem("research_access_token");
-    localStorage.removeItem("research_refresh_token");
-    localStorage.removeItem("research_user");
-    window.location.href = "/login";
+    void signOut().finally(() => {
+      localStorage.removeItem("research_user");
+      window.location.href = "/login";
+    });
   };
   const setReminderPreference = (enabled: boolean) => {
     setRemindersEnabled(enabled);

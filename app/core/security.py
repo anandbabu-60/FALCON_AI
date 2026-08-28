@@ -14,7 +14,12 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(password.encode(), hashed_password.encode())
+    # Treat malformed legacy/database hashes as invalid credentials rather than
+    # allowing a bad row to turn a login request into a 500 response.
+    try:
+        return bcrypt.checkpw(password.encode(), hashed_password.encode())
+    except (ValueError, TypeError):
+        return False
 
 
 def _create_token(subject: str, token_type: str, expires_delta: timedelta) -> str:

@@ -31,6 +31,7 @@ export default function Register() {
   const [resendSeconds, setResendSeconds] = useState(0);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [saving, setSaving] = useState(false);
   useEffect(() => {
     if (!otpMode) return;
     const timer = window.setInterval(
@@ -65,6 +66,7 @@ export default function Register() {
       return;
     }
     try {
+      setSaving(true);
       await register({
         email,
         full_name: name,
@@ -80,11 +82,13 @@ export default function Register() {
         apiError(requestError) ||
           "Account creation failed. Check your details and try again.",
       );
+    } finally { setSaving(false); }
     }
   };
   const verify = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
+      setSaving(true);
       await verifyEmail(email, otp);
       setNotice("Email verified successfully! Redirecting to login...");
       window.setTimeout(() => {
@@ -95,6 +99,7 @@ export default function Register() {
         apiError(requestError) ||
           "OTP verification failed. Please enter the correct OTP.",
       );
+    } finally { setSaving(false); }
     }
   };
   const resend = async () => {
@@ -105,6 +110,7 @@ export default function Register() {
       return;
     }
     try {
+      setSaving(true);
       await resendVerificationOtp(email);
       setSecondsLeft(300);
       setResendSeconds(60);
@@ -112,7 +118,7 @@ export default function Register() {
       setNotice("New OTP sent successfully.");
     } catch (requestError) {
       setError(apiError(requestError) || "Unable to resend OTP.");
-    }
+    } finally { setSaving(false); }
   };
   if (otpMode) {
     const time = `${String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:${String(secondsLeft % 60).padStart(2, "0")}`;
@@ -146,14 +152,14 @@ export default function Register() {
               <button
                 className="primary-button"
                 type="submit"
-                disabled={otp.length !== 6}
+                disabled={saving || otp.length !== 6}
               >
                 Verify email <ArrowRight size={17} />
               </button>
               <button
                 className="auth-link"
                 type="button"
-                onClick={() => void resend}
+                onClick={() => void resend()}
               >
                 Resend OTP {resendSeconds ? `(${resendSeconds}s)` : ""}
               </button>
@@ -274,8 +280,8 @@ export default function Register() {
               </div>
             </label>
             {error && <p className="auth-error">{error}</p>}
-            <button className="auth-submit" type="submit">
-              Create account <ArrowRight size={16} />
+            <button className="auth-submit" type="submit" disabled={saving}>
+              {saving ? "Creating account…" : "Create account"} {!saving && <ArrowRight size={16} />}
             </button>
           </form>
           <p className="auth-switch">
