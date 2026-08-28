@@ -1,0 +1,48 @@
+services:
+  api:
+    build: .
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - document_storage:/app/storage
+      - chroma_data:/app/chroma_db
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  frontend:
+    build:
+      context: ../data/frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8000/api/v1
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-research_agent}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d research_agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+volumes:
+  postgres_data:
+  document_storage:
+  chroma_data:

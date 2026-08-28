@@ -1,0 +1,4 @@
+# Optional AI retrieval dependencies. Install after the core backend works.
+# On Windows/Python 3.13, ChromaDB may require Microsoft C++ Build Tools.
+chromadb>=0.5,<1.0
+sentence-transformers>=3.0,<4.0
