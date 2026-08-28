@@ -30,7 +30,7 @@ npm run build
 For a Render Static Site, set:
 
 ```text
-Root directory: data/frontend (or the repository path containing package.json)
+Root directory: frontend
 Build command: npm ci && npm run build
 Publish directory: dist
 Environment variable: VITE_API_URL=https://falcon-ai-57te.onrender.com
